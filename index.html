@@ -2,929 +2,531 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>চৈতন্য - অডিটর স্মার্ট পোর্টাল</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>হাদিয়ার ময়নাতদন্ত</title>
+    <!-- বাংলা ফন্ট (কালপুরুষ/নিকোষ) -->
+    <link href="https://fonts.googleapis.com/css2?family=Kalpurush&family=Nikosh&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .font-digital { font-family: 'Orbitron', monospace; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* কাস্টম ফোকাস ও মার্কিং কালার */
-        input:focus, select:focus {
+        body {
+            font-family: 'Kalpurush', 'Nikosh', Arial, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 10px;
+            color: #333;
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #16a085;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 15px;
+            flex: 1;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-family: 'Kalpurush', sans-serif;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .btn-primary { background-color: #16a085; color: white; }
+        .btn-print { background-color: #2980b9; color: white; }
+        .btn-copy { background-color: #d35400; color: white; }
+        .btn-danger { background-color: #c0392b; color: white; }
+        .btn-folder { background-color: #8e44ad; color: white; }
+
+        /* পপআপ মডাল */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-card h3 { margin-top: 0; color: #16a085; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 15px;
+            font-family: 'Kalpurush', sans-serif;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-            border-color: #2563eb !important;
+        }
+        input:focus { border-color: #16a085; }
+        .modal-btns { display: flex; gap: 10px; }
+
+        /* টেবিল ডিজাইন */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 8px;
+            text-align: center;
+        }
+        th { background-color: #16a085; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+
+        .action-btns button {
+            padding: 3px 6px;
+            font-size: 11px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+        .edit-btn { background-color: #f39c12; }
+        .del-btn { background-color: #e74c3c; }
+
+        /* হিস্টোরি ফোল্ডার সেকশন */
+        .history-section {
+            display: none;
+            margin-top: 15px;
         }
 
+        /* প্রিন্ট স্টাইল: ১ পাতায় সুপার ও ডিএএফও দুটি ভাগে দেখাবে */
+        .print-receipt-container { display: none; }
+        
         @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
-            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .app-container, header, .no-print, .modal-overlay { display: none !important; }
+            
+            .print-receipt-container {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                height: 98vh;
+                box-sizing: border-box;
+                padding: 10px;
+                page-break-after: always;
+            }
+            .receipt-box {
+                border: 2px dashed #000;
+                padding: 15px;
+                border-radius: 8px;
+                height: 46%;
+                box-sizing: border-box;
+            }
+            .receipt-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 8px;
+                margin-bottom: 10px;
+            }
+            .receipt-header h2 { margin: 0; font-size: 18px; }
+            .receipt-body table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+            .receipt-body th, .receipt-body td { border: 1px solid #000; padding: 6px; text-align: center; }
+            .receipt-body th { background: #eee; color: #000; }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-blue-100 selection:text-blue-900">
+<body>
 
-    <!-- ==================== ১. লগইন ও রেজিস্ট্রেশন মডিউল (সফট ক্লিন লাইট থিম) ==================== -->
-    <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-blue-50/60 via-slate-50 to-slate-100">
-        <div class="w-full max-w-md bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 relative overflow-hidden">
-            <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-100/60 rounded-full blur-2xl pointer-events-none"></div>
-            
-            <!-- Logo & Brand Header -->
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-md shadow-blue-500/20 mb-3 border border-blue-200">
-                    <i class="fa-solid fa-shield-halved text-3xl text-white"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">চৈতন্য</h1>
-                <p class="text-xs text-slate-500 mt-1 font-medium">অডিটর ওয়ার্কস্পেস ও স্মার্ট বিল ম্যানেজমেন্ট</p>
-                <div class="inline-block mt-2 px-3 py-0.5 bg-blue-50 border border-blue-200 rounded-full text-[11px] text-blue-700 font-medium">সরকারি কার্যবন্টন ও নিরীক্ষা পোর্টাল</div>
-            </div>
+<div class="app-container">
+    <header>হাদিয়া</header>
 
-            <!-- Tab Switcher -->
-            <div class="flex rounded-xl bg-slate-100 p-1 mb-6 border border-slate-200">
-                <button id="tabLoginBtn" onclick="toggleAuthTab('login')" class="flex-1 py-2 text-xs font-semibold rounded-lg bg-white text-blue-700 shadow-sm transition-all border border-slate-200/60">লগইন</button>
-                <button id="tabRegBtn" onclick="toggleAuthTab('reg')" class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all">নতুন রেজিস্ট্রেশন</button>
-            </div>
-
-            <!-- Login Form -->
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">ব্যবহারকারী আইডি / মোবাইল / ইমেইল</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400"><i class="fa-regular fa-user"></i></span>
-                        <input type="text" id="loginId" required placeholder="ইউজার আইডি বা মোবাইল দিন" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 transition-all">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">পাসওয়ার্ড</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" id="loginPass" required placeholder="পাসওয়ার্ড দিন" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-800 placeholder-slate-400 transition-all">
-                    </div>
-                </div>
-                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
-                    <span>ড্যাশবোর্ডে প্রবেশ করুন</span>
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                </button>
-            </form>
-
-            <!-- Registration Form -->
-            <form id="regForm" onsubmit="handleRegistration(event)" class="space-y-3 hidden">
-                <div>
-                    <label class="block text-[11px] font-medium text-slate-700 mb-1">পূর্ণ নাম *</label>
-                    <input type="text" id="regName" required placeholder="আপনার পূর্ণ নাম" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-700 mb-1">কর্মস্থলের নাম *</label>
-                        <input type="text" id="regOffice" required placeholder="যেমন: ডিএএফও" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-700 mb-1">পদবী *</label>
-                        <input type="text" id="regDesignation" required placeholder="যেমন: অডিটর" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-700 mb-1">জেলা *</label>
-                        <input type="text" id="regDistrict" required placeholder="জেলা" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-700 mb-1">উপজেলা *</label>
-                        <input type="text" id="regUpazila" required placeholder="উপজেলা" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-700 mb-1">মোবাইল নম্বর *</label>
-                        <input type="tel" id="regPhone" required placeholder="017xxxxxxxx" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-700 mb-1">ইমেইল ঠিকানা *</label>
-                        <input type="email" id="regEmail" required placeholder="email@example.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800">
-                    </div>
-                </div>
-                <button type="submit" class="w-full py-2.5 mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>নিবন্ধন সম্পন্ন করুন</span>
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- ==================== ২. মূল ড্যাশবোর্ড ও ওয়ার্কস্পেস (লাইট থিম) ==================== -->
-    <div id="dashboardScreen" class="hidden min-h-screen flex flex-col justify-between bg-slate-50">
+    <div class="content">
+        <button class="btn btn-primary" onclick="openStep(1)">+ নতুন এন্ট্রি যোগ করুন</button>
+        <button class="btn btn-folder" onclick="toggleHistoryFolder()">📁 হিস্টোরি ফোল্ডার (১ মাস)</button>
         
-        <!-- Top Status & Digital Clock Header -->
-        <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 no-print shadow-sm">
-            <div class="max-w-4xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="relative">
-                        <img id="userAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=tushar" class="w-10 h-10 rounded-full border-2 border-blue-500 bg-blue-50 p-0.5 object-cover">
-                        <button onclick="document.getElementById('profilePicInput').click()" class="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-600 rounded-full text-[9px] flex items-center justify-center text-white shadow"><i class="fa-solid fa-camera"></i></button>
-                        <input type="file" id="profilePicInput" accept="image/*" class="hidden" onchange="updateProfilePic(event)">
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-sm font-bold text-slate-800" id="displayUserName">তুষার</span>
-                            <span id="roleBadge" class="text-[10px] bg-amber-50 text-amber-700 border border-amber-300 px-1.5 py-0.2 rounded font-semibold">মাদার আইডি</span>
-                        </div>
-                        <p class="text-[10px] text-slate-500" id="displayOfficeDesignation">অডিটর | ড্যাশবোর্ড</p>
-                    </div>
-                </div>
+        <div style="display: flex; gap: 5px; margin-top: 10px;" class="no-print">
+            <button class="btn btn-print" onclick="window.print()" style="flex:1;">🖨️ প্রিন্ট (২ ভাগ)</button>
+            <button class="btn btn-copy" onclick="copyTableForMSWord()" style="flex:1;">📋 কপি</button>
+            <button class="btn btn-danger" onclick="clearAllData()" style="flex:1;">🗑️ মুছুন</button>
+        </div>
 
-                <!-- Digital Clock in Bangla (হালকা ব্যাকগ্রাউন্ড ও ক্লিয়ার লুক) -->
-                <div class="text-right">
-                    <div class="inline-flex items-center gap-1.5 bg-blue-50 px-3 py-1 rounded-xl border border-blue-200 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span id="liveClockBangla" class="text-sm font-digital text-blue-700 tracking-wider font-bold">১২:০০:০০</span>
-                    </div>
-                    <div id="liveDateBangla" class="text-[10px] text-slate-500 mt-0.5 font-medium">মঙ্গলবার, ১৩ অক্টোবর ২০২৬</div>
-                </div>
+        <!-- মূল ড্যাশবোর্ড টেবিল -->
+        <div class="table-responsive">
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th>অফিসের নাম</th>
+                        <th>মোট বিল</th>
+                        <th>লেকশন</th>
+                        <th>সুপার (২০%)</th>
+                        <th>ডিএএফও (৩০%)</th>
+                        <th class="no-print">অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+                <tfoot>
+                    <tr style="font-weight: bold; background: #e8f8f5;">
+                        <td style="text-align: right;">মোট:</td>
+                        <td id="sumBill">০</td>
+                        <td id="sumCollection">০</td>
+                        <td id="sumSuper">০</td>
+                        <td id="sumDafo">০</td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- হিস্টোরি ফোল্ডার ভিউ -->
+        <div class="history-section" id="historySection">
+            <h3 style="color: #8e44ad; text-align: center; margin-bottom: 5px;">হিস্টোরি ফোল্ডার (গত ১ মাস)</h3>
+            <div class="table-responsive">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>তারিখ</th>
+                            <th>অফিসের নাম</th>
+                            <th>লেকশন</th>
+                            <th>সুপার</th>
+                            <th>ডিএএফও</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
             </div>
-        </header>
-
-        <!-- Main Body Content Containers -->
-        <main class="max-w-4xl mx-auto w-full p-4 flex-1 pb-24">
-            
-            <!-- Quick Actions Banner -->
-            <div class="flex items-center justify-between mb-4 gap-2">
-                <button id="installAppBtn" onclick="promptInstallPWA()" class="hidden text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-download"></i> অ্যাপ ইনস্টল করুন
-                </button>
-                <div class="flex-1"></div>
-                <button onclick="logout()" class="text-xs bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all font-medium">
-                    <i class="fa-solid fa-power-off"></i> লগআউট
-                </button>
-            </div>
-
-            <!-- TAB 1: New Work Entry Form (মডিউল ১: হালকা ব্লু টিন্ট) -->
-            <section id="paneEntry" class="tab-pane">
-                <div class="bg-blue-50/60 border border-blue-200 rounded-2xl p-5 shadow-sm">
-                    <div class="flex items-center justify-between mb-4 border-b border-blue-200 pb-2">
-                        <h2 class="text-sm font-bold text-blue-900 flex items-center gap-2">
-                            <i class="fa-solid fa-file-circle-plus text-blue-600"></i> নতুন কার্যবন্টন ও বিল এন্ট্রি
-                        </h2>
-                        <span class="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">* অফিস আদেশ বাধ্যতামূলক</span>
-                    </div>
-
-                    <form id="workEntryForm" onsubmit="saveWorkEntry(event)" class="space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">বিল বা কাজের ক্যাটাগরি *</label>
-                                <select id="entryCategory" required class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
-                                    <option value="GPF চূড়ান্ত Authority">GPF চূড়ান্ত Authority</option>
-                                    <option value="GPF অগ্রিম বিল">GPF অগ্রিম বিল</option>
-                                    <option value="LPC গ্রহণ ও প্রেরণ">LPC গ্রহণ ও প্রেরণ</option>
-                                    <option value="ল্যাম্পগ্রান্ট">ল্যাম্পগ্রান্ট</option>
-                                    <option value="পেনশন বিল">পেনশন বিল</option>
-                                    <option value="বকেয়া বিল">বকেয়া বিল</option>
-                                    <option value="আনুষঙ্গিক বিল">আনুষঙ্গিক বিল</option>
-                                    <option value="অন্যান্য সাধারণ বিল">অন্যান্য সাধারণ বিল</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">দপ্তরের নাম *</label>
-                                <select id="entryOffice" required class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
-                                    <option value="উপজেলা শিক্ষা অফিস, নেত্রকোণা সদর">উপজেলা শিক্ষা অফিস, নেত্রকোণা সদর</option>
-                                    <option value="জেলা হিসাবরক্ষণ কর্মকর্তার কার্যালয়, নেত্রকোণা">জেলা হিসাবরক্ষণ কর্মকর্তার কার্যালয়, নেত্রকোণা</option>
-                                    <option value="উপজেলা নির্বাহী অফিসারের কার্যালয়, নেত্রকোণা সদর">উপজেলা নির্বাহী অফিসারের কার্যালয়, নেত্রকোণা সদর</option>
-                                    <option value="উপজেলা স্বাস্থ্য কমপ্লেক্স, বারহাট্টা">উপজেলা স্বাস্থ্য কমপ্লেক্স, বারহাট্টা</option>
-                                    <option value="উপজেলা মৎস্য কর্মকর্তার কার্যালয়, নেত্রকোণা সদর">উপজেলা মৎস্য কর্মকর্তার কার্যালয়, নেত্রকোণা সদর</option>
-                                    <option value="অন্যান্য সংযুক্ত দপ্তর">অন্যান্য সংযুক্ত দপ্তর</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Individual Person Name Field -->
-                        <div id="personFieldBox" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">সংশ্লিষ্ট কর্মচারীর নাম (প্রযোজ্য ক্ষেত্রে)</label>
-                                <input type="text" id="entryPersonName" placeholder="কর্মকর্তা/কর্মচারীর নাম" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">বিলের মোট টাকার পরিমাণ (৳)</label>
-                                <input type="number" id="entryAmount" placeholder="যেমন: 50000" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
-                            </div>
-                        </div>
-
-                        <!-- Mandatory Document Upload -->
-                        <div class="border-2 border-dashed border-blue-300 bg-white p-4 rounded-xl text-center">
-                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-600 mb-1"></i>
-                            <p class="text-xs font-bold text-slate-700">অফিস আদেশ বা ফরওয়ার্ডিং আপলোড করুন *</p>
-                            <p class="text-[10px] text-slate-500 mb-2">ছবি বা PDF (সরাসরি ডিভাইসে এবং ক্লাউডে সুরক্ষিত থাকবে)</p>
-                            <input type="file" id="entryDocFile" required accept="image/*,.pdf" class="block w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
-                        </div>
-
-                        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            <span>এন্ট্রি সংরক্ষণ করুন</span>
-                        </button>
-                    </form>
-                </div>
-            </section>
-
-            <!-- TAB 2: Pending Works Module (মডিউল ২: হালকা অ্যাম্বার/হলুদ টিন্ট) -->
-            <section id="panePending" class="tab-pane hidden space-y-4">
-                <div class="bg-amber-50/50 border border-amber-200 rounded-2xl p-4 shadow-sm">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-amber-200 pb-2">
-                        <div>
-                            <h2 class="text-sm font-bold text-amber-900 flex items-center gap-2">
-                                <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> পেন্ডিং বিল ও কাজ তালিকা
-                            </h2>
-                            <p class="text-[10px] text-slate-600">মোট পেন্ডিং: <span id="pendingCountBadge" class="font-bold text-rose-600">০</span> টি</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="printFilteredList('pending')" class="text-xs bg-white hover:bg-amber-100 text-amber-900 font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-amber-300 shadow-sm">
-                                <i class="fa-solid fa-print"></i> পেন্ডিং প্রিন্ট
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Search Filter -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                        <input type="text" id="searchPending" oninput="renderLists()" placeholder="দপ্তর বা ব্যক্তির নাম দিয়ে খুঁজুন..." class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-800">
-                        <select id="filterCategoryPending" onchange="renderLists()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-800">
-                            <option value="">সকল ক্যাটাগরি</option>
-                            <option value="GPF চূড়ান্ত Authority">GPF চূড়ান্ত Authority</option>
-                            <option value="GPF অগ্রিম বিল">GPF অগ্রিম বিল</option>
-                            <option value="LPC গ্রহণ ও প্রেরণ">LPC গ্রহণ ও প্রেরণ</option>
-                            <option value="ল্যাম্পগ্রান্ট">ল্যাম্পগ্রান্ট</option>
-                            <option value="পেনশন বিল">পেনশন বিল</option>
-                            <option value="বকেয়া বিল">বকেয়া বিল</option>
-                            <option value="আনুষঙ্গিক বিল">আনুষঙ্গিক বিল</option>
-                        </select>
-                    </div>
-
-                    <div id="pendingListContainer" class="space-y-3">
-                        <!-- Dynamic Pending Items -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 3: Done Folder & Secret Collection Module (মডিউল ৩: হালকা মিন্ট গ্রিন টিন্ট) -->
-            <section id="paneDone" class="tab-pane hidden space-y-4">
-                <div class="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-4 shadow-sm">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-emerald-200 pb-2">
-                        <div>
-                            <h2 class="text-sm font-bold text-emerald-900 flex items-center gap-2">
-                                <i class="fa-solid fa-circle-check text-emerald-600"></i> সম্পন্ন কাজ (Done Folder)
-                            </h2>
-                            <p class="text-[10px] text-slate-600">শুরু ও সমাপ্তির পূর্ণাঙ্গ তারিখসহ সংরক্ষিত</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="printFilteredList('done')" class="text-xs bg-white hover:bg-emerald-100 text-emerald-900 font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-emerald-300 shadow-sm">
-                                <i class="fa-solid fa-print"></i> Done প্রিন্ট
-                            </button>
-                            <button onclick="toggleSecretCollectionModal()" class="text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-lock"></i> অফিস কালেকশন (গোপনীয়)
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="doneListContainer" class="space-y-3">
-                        <!-- Dynamic Done Items -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 4: Office Directory & Orders Search (মডিউল ৪: হালকা ল্যাভেন্ডার/পার্পল টিন্ট) -->
-            <section id="paneOrders" class="tab-pane hidden space-y-4">
-                <div class="bg-indigo-50/50 border border-indigo-200 rounded-2xl p-4 shadow-sm">
-                    <h2 class="text-sm font-bold text-indigo-900 flex items-center gap-2 mb-3 border-b border-indigo-200 pb-2">
-                        <i class="fa-solid fa-folder-open text-indigo-600"></i> অফিস আদেশ ও ফাইল মহাফেজখানা
-                    </h2>
-                    <input type="text" id="searchOrdersInput" oninput="renderOrdersArchive()" placeholder="অফিসের নাম বা তারিখ লিখে খুঁজুন..." class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 mb-3">
-                    <div id="ordersArchiveList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <!-- Dynamic Orders -->
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Bottom Navigation Bar for Mobile (পরিচ্ছন্ন লাইট বার) -->
-        <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 px-2 py-1.5 no-print shadow-md">
-            <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center">
-                <button onclick="switchTab('paneEntry')" id="btnNavEntry" class="py-1 text-blue-600 flex flex-col items-center">
-                    <i class="fa-solid fa-plus-circle text-lg"></i>
-                    <span class="text-[10px] mt-0.5 font-bold">এন্ট্রি</span>
-                </button>
-                <button onclick="switchTab('panePending')" id="btnNavPending" class="py-1 text-slate-500 hover:text-amber-600 flex flex-col items-center">
-                    <i class="fa-solid fa-hourglass-half text-lg"></i>
-                    <span class="text-[10px] mt-0.5 font-medium">পেন্ডিং</span>
-                </button>
-                <button onclick="switchTab('paneDone')" id="btnNavDone" class="py-1 text-slate-500 hover:text-emerald-600 flex flex-col items-center">
-                    <i class="fa-solid fa-check-double text-lg"></i>
-                    <span class="text-[10px] mt-0.5 font-medium">Done</span>
-                </button>
-                <button onclick="switchTab('paneOrders')" id="btnNavOrders" class="py-1 text-slate-500 hover:text-indigo-600 flex flex-col items-center">
-                    <i class="fa-solid fa-folder-closed text-lg"></i>
-                    <span class="text-[10px] mt-0.5 font-medium">আদেশ</span>
-                </button>
-            </div>
-        </nav>
-
-        <!-- Footer Subtle Watermark -->
-        <footer class="text-center py-2 text-[10px] text-slate-400 no-print select-none">
-            © ২০২৬ চৈতন্য সিস্টেমস | <span class="font-semibold text-slate-500">MastSerious</span>
-        </footer>
-    </div>
-
-    <!-- ==================== ৩. পপআপ ও মডালসমূহ ==================== -->
-
-    <!-- Registration Credential Popup -->
-    <div id="regSuccessModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white border border-slate-200 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative">
-            <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl mb-3 border border-emerald-200 animate-bounce">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-800 mb-1">রেজিস্ট্রেশন সফল হয়েছে!</h3>
-            <p class="text-xs text-slate-500 mb-4">আপনার স্বয়ংক্রিয় লগইন ক্রেডেনশিয়াল প্রস্তুত:</p>
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left space-y-2 mb-4">
-                <div class="text-xs text-slate-600">ব্যবহারকারী আইডি: <span id="newUserIdDisp" class="text-blue-700 font-bold ml-1"></span></div>
-                <div class="text-xs text-slate-600">ডিফল্ট পাসওয়ার্ড: <span id="newUserPassDisp" class="text-blue-700 font-bold ml-1"></span></div>
-            </div>
-            <button onclick="closeRegSuccessModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md">লগইন স্ক্রিনে যান</button>
+            <button class="btn btn-primary" onclick="toggleHistoryFolder()" style="margin-top: 10px;">ড্যাশবোর্ডে ফিরে যান</button>
         </div>
     </div>
+</div>
 
-    <!-- Pending Reminder Popup -->
-    <div id="pendingReminderModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white border border-amber-300 rounded-2xl p-5 max-w-sm w-full shadow-2xl">
-            <div class="flex items-center gap-2.5 text-amber-700 mb-2">
-                <i class="fa-solid fa-bell text-xl"></i>
-                <h3 class="text-sm font-bold">পেন্ডিং কাজের রিমাইন্ডার</h3>
+<!-- স্লাইড বাই স্লাইড পপআপ মডাল -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card">
+        <h3 id="modalTitle">তথ্য এন্ট্রি</h3>
+        <input type="hidden" id="editIndex" value="">
+
+        <div class="modal-step" id="step1">
+            <div class="form-group">
+                <label>অফিসের নাম লিখুন:</label>
+                <input type="text" id="popupOffice" placeholder="যেমন: পরিবেশ অধিদপ্তর">
             </div>
-            <p class="text-xs text-slate-600 mb-3" id="reminderText">আপনার তালিকায় কাজ পেন্ডিং রয়েছে। দ্রুত নিষ্পত্তি সম্পন্ন করুন।</p>
-            <div class="flex justify-end gap-2">
-                <button onclick="document.getElementById('pendingReminderModal').classList.add('hidden')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded-lg font-medium">ঠিক আছে</button>
-                <button onclick="document.getElementById('pendingReminderModal').classList.add('hidden'); switchTab('panePending');" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-sm">পেন্ডিং তালিকা দেখুন</button>
+            <div class="modal-btns">
+                <button class="btn btn-danger" onclick="closeModal()">বাতিল</button>
+                <button class="btn btn-primary" onclick="nextStep(2)">পরবর্তী</button>
+            </div>
+        </div>
+
+        <div class="modal-step" id="step2" style="display:none;">
+            <div class="form-group">
+                <label>মোট টাকার বিল:</label>
+                <input type="number" id="popupBill" placeholder="যেমন: ১০০০০">
+            </div>
+            <div class="modal-btns">
+                <button class="btn btn-danger" onclick="nextStep(1)">পূর্ববর্তী</button>
+                <button class="btn btn-primary" onclick="nextStep(3)">পরবর্তী</button>
+            </div>
+        </div>
+
+        <div class="modal-step" id="step3" style="display:none;">
+            <div class="form-group">
+                <label>ক্যাশ সরকার হতে কালেকশন:</label>
+                <input type="number" id="popupCollection" placeholder="যেমন: ২০০০">
+            </div>
+            <div class="modal-btns">
+                <button class="btn btn-danger" onclick="nextStep(2)">পূর্ববর্তী</button>
+                <button class="btn btn-primary" onclick="savePopupData()">সংরক্ষণ করুন</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Secret Office Collection Modal (Confidential) -->
-    <div id="secretCollectionModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white border border-amber-300 rounded-2xl p-5 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
-                <div class="flex items-center gap-2 text-amber-800 font-bold text-sm">
-                    <i class="fa-solid fa-user-secret text-amber-600"></i> অফিস কালেকশন হিসাব (গোপনীয়)
-                </div>
-                <button onclick="toggleSecretCollectionModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <p class="text-[11px] text-slate-500 mb-3">আনুষঙ্গিক বিলের ৩%, ৪%, ৫% অংশীদারিত্ব বণ্টন (৫০%-৩০%-২০% অনুপাত):</p>
-            
-            <div id="collectionItemsContainer" class="space-y-3 mb-4">
-                <!-- Calculated Collection Rows -->
-            </div>
-
-            <div class="flex justify-between items-center border-t border-slate-200 pt-3">
-                <button onclick="printSecretCollection()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-print"></i> প্রমাণ প্রিন্ট
-                </button>
-                <button onclick="toggleSecretCollectionModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl">বন্ধ করুন</button>
-            </div>
+<!-- প্রিন্ট করার জন্য ১ পাতায় দুটি ভাগ (সুপার ও ডিএএফও স্লিপ) -->
+<div class="print-receipt-container" id="printContainer">
+    <!-- উপরের অংশ: সুপার স্লিপ -->
+    <div class="receipt-box">
+        <div class="receipt-header">
+            <h2>হাদিয়া - সুপার (২০%)</h2>
+            <div id="printDate1" style="font-size: 13px; font-weight: bold;"></div>
+        </div>
+        <div class="receipt-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>অফিসের নাম</th>
+                        <th>লেকশন</th>
+                        <th>সুপার ভাগ (২০%)</th>
+                    </tr>
+                </thead>
+                <tbody id="printSuperBody"></tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Dedicated Print Container -->
-    <div id="printArea" class="hidden p-8 text-black bg-white"></div>
+    <!-- নিচের অংশ: ডিএএফও স্লিপ -->
+    <div class="receipt-box">
+        <div class="receipt-header">
+            <h2>হাদিয়া - ডিএএফও (৩০%)</h2>
+            <div id="printDate2" style="font-size: 13px; font-weight: bold;"></div>
+        </div>
+        <div class="receipt-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>অফিসের নাম</th>
+                        <th>লেকশন</th>
+                        <th>ডিএএফও ভাগ (৩০%)</th>
+                    </tr>
+                </thead>
+                <tbody id="printDafoBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-    <!-- ==================== ৪. স্ক্রিপ্ট ও লজিক ইঞ্জিন ==================== -->
-    <script>
-        const STORAGE_KEY_USERS = "chaitanya_users";
-        const STORAGE_KEY_WORKS = "chaitanya_works";
-        const STORAGE_KEY_CURRENT_USER = "chaitanya_active_user";
-        const MASTER_ADMIN_ID = "tushar";
+<script>
+    let entries = JSON.parse(localStorage.getItem('hadiya_data')) || [];
 
-        let currentUser = null;
-        let worksData = [];
-        let deferredPrompt = null;
+    function toBengaliNum(num) {
+        if (isNaN(num)) return '০';
+        const numStr = Number(num).toFixed(2).replace(/\.00$/, '');
+        const bengaliDigits = {'0':'০', '1':'১', '2':'২', '3':'৩', '4':'৪', '5':'৫', '6':'৬', '7':'৭', '8':'৮', '9':'৯', '.':'.'};
+        return numStr.toString().split('').map(char => bengaliDigits[char] !== undefined ? bengaliDigits[char] : char).join('');
+    }
 
-        // Digital Clock Initialization
-        function updateDigitalClock() {
-            const now = new Date();
-            const toBanglaNum = (n) => String(n).padStart(2, '0').replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]);
-            const hours = toBanglaNum(now.getHours());
-            const mins = toBanglaNum(now.getMinutes());
-            const secs = toBanglaNum(now.getSeconds());
-            
-            const daysBangla = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
-            const monthsBangla = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
-            
-            const clockEl = document.getElementById("liveClockBangla");
-            const dateEl = document.getElementById("liveDateBangla");
-            if (clockEl) clockEl.innerText = `${hours}:${mins}:${secs}`;
-            if (dateEl) dateEl.innerText = `${daysBangla[now.getDay()]}, ${toBanglaNum(now.getDate())} ${monthsBangla[now.getMonth()]} ${now.getFullYear().toString().replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d])}`;
+    function cleanOldData() {
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        entries = entries.filter(item => new Date(item.date) >= oneMonthAgo);
+        localStorage.setItem('hadiya_data', JSON.stringify(entries));
+    }
+
+    function openStep(step) {
+        document.getElementById('modalOverlay').style.display = 'flex';
+        showStep(step);
+    }
+
+    function showStep(step) {
+        document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
+        document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
+        document.getElementById('step3').style.display = step === 3 ? 'block' : 'none';
+        
+        if(step === 1) document.getElementById('popupOffice').focus();
+        if(step === 2) document.getElementById('popupBill').focus();
+        if(step === 3) document.getElementById('popupCollection').focus();
+    }
+
+    function nextStep(step) {
+        if(step === 2 && !document.getElementById('popupOffice').value.trim()) {
+            alert('দয়া করে অফিসের নাম লিখুন!');
+            return;
         }
-        setInterval(updateDigitalClock, 1000);
-        updateDigitalClock();
+        if(step === 3 && !document.getElementById('popupBill').value) {
+            alert('দয়া করে মোট বিলের পরিমাণ দিন!');
+            return;
+        }
+        showStep(step);
+    }
 
-        // PWA Install Prompt Listener
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const btn = document.getElementById('installAppBtn');
-            if (btn) btn.classList.remove('hidden');
+    function closeModal() {
+        document.getElementById('modalOverlay').style.display = 'none';
+        resetPopupForm();
+    }
+
+    function resetPopupForm() {
+        document.getElementById('popupOffice').value = '';
+        document.getElementById('popupBill').value = '';
+        document.getElementById('popupCollection').value = '';
+        document.getElementById('editIndex').value = '';
+        document.getElementById('modalTitle').innerText = "তথ্য এন্ট্রি";
+    }
+
+    function savePopupData() {
+        const officeName = document.getElementById('popupOffice').value.trim();
+        const totalBill = parseFloat(document.getElementById('popupBill').value);
+        const collection = parseFloat(document.getElementById('popupCollection').value);
+        const editIndex = document.getElementById('editIndex').value;
+
+        if (!officeName || isNaN(totalBill) || isNaN(collection)) {
+            alert('সব তথ্য সঠিকভাবে দিন!');
+            return;
+        }
+
+        const superShare = collection * 0.20;
+        const dafoShare = collection * 0.30;
+        const date = new Date().toISOString().split('T')[0];
+
+        const entryObj = { date, officeName, totalBill, collection, superShare, dafoShare };
+
+        if (editIndex === "") {
+            entries.push(entryObj);
+        } else {
+            entries[editIndex] = entryObj;
+        }
+
+        localStorage.setItem('hadiya_data', JSON.stringify(entries));
+        closeModal();
+        renderTable();
+    }
+
+    function toggleHistoryFolder() {
+        const historySec = document.getElementById('historySection');
+        const mainTable = document.querySelector('.table-responsive');
+        if(historySec.style.display === 'block') {
+            historySec.style.display = 'none';
+            mainTable.style.display = 'block';
+        } else {
+            historySec.style.display = 'block';
+            mainTable.style.display = 'none';
+            renderHistoryTable();
+        }
+    }
+
+    function renderTable() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        let totalBillSum = 0, totalCollSum = 0, totalSuperSum = 0, totalDafoSum = 0;
+
+        entries.forEach((item, index) => {
+            totalBillSum += item.totalBill;
+            totalCollSum += item.collection;
+            totalSuperSum += item.superShare;
+            totalDafoSum += item.dafoShare;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.officeName}</td>
+                <td>${toBengaliNum(item.totalBill)} টাকা</td>
+                <td>${toBengaliNum(item.collection)} টাকা</td>
+                <td>${toBengaliNum(item.superShare)} টাকা</td>
+                <td>${toBengaliNum(item.dafoShare)} টাকা</td>
+                <td class="no-print action-btns">
+                    <button class="edit-btn" onclick="editEntry(${index})">এডিট</button>
+                    <button class="del-btn" onclick="deleteEntry(${index})">মুছুন</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
         });
 
-        function promptInstallPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(() => {
-                    deferredPrompt = null;
-                    document.getElementById('installAppBtn').classList.add('hidden');
-                });
-            }
-        }
+        document.getElementById('sumBill').innerText = toBengaliNum(totalBillSum) + ' টাকা';
+        document.getElementById('sumCollection').innerText = toBengaliNum(totalCollSum) + ' টাকা';
+        document.getElementById('sumSuper').innerText = toBengaliNum(totalSuperSum) + ' টাকা';
+        document.getElementById('sumDafo').innerText = toBengaliNum(totalDafoSum) + ' টাকা';
 
-        // Initialize Data & Session
-        function initApp() {
-            let users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || "[]");
-            if (!users.some(u => u.id === MASTER_ADMIN_ID)) {
-                users.push({
-                    id: MASTER_ADMIN_ID,
-                    pass: "1234",
-                    name: "আব্দুর নূর তুষার",
-                    office: "ডিএএফও কার্যালয়, নেত্রকোণা",
-                    designation: "অডিটর",
-                    district: "নেত্রকোণা",
-                    upazila: "নেত্রকোণা সদর",
-                    email: "borobhaicga@gmail.com",
-                    isMaster: true
-                });
-                localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-            }
+        preparePrintData();
+    }
 
-            worksData = JSON.parse(localStorage.getItem(STORAGE_KEY_WORKS) || "[]");
-
-            const savedSession = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
-            if (savedSession) {
-                currentUser = JSON.parse(savedSession);
-                showDashboard();
-            } else {
-                showAuth();
-            }
-        }
-
-        function toggleAuthTab(tab) {
-            const loginForm = document.getElementById("loginForm");
-            const regForm = document.getElementById("regForm");
-            const tabLogin = document.getElementById("tabLoginBtn");
-            const tabReg = document.getElementById("tabRegBtn");
-
-            if (tab === 'login') {
-                loginForm.classList.remove("hidden");
-                regForm.classList.add("hidden");
-                tabLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg bg-white text-blue-700 shadow-sm transition-all border border-slate-200/60";
-                tabReg.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all";
-            } else {
-                loginForm.classList.add("hidden");
-                regForm.classList.remove("hidden");
-                tabReg.className = "flex-1 py-2 text-xs font-semibold rounded-lg bg-white text-blue-700 shadow-sm transition-all border border-slate-200/60";
-                tabLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all";
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const idInput = document.getElementById("loginId").value.trim();
-            const passInput = document.getElementById("loginPass").value.trim();
-
-            const users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || "[]");
-            const user = users.find(u => (u.id === idInput || u.phone === idInput || u.email === idInput) && u.pass === passInput);
-
-            if (user) {
-                currentUser = user;
-                localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(currentUser));
-                showDashboard();
-            } else {
-                alert("ভুল ইউজার আইডি অথবা পাসওয়ার্ড! পুনরায় চেষ্টা করুন।");
-            }
-        }
-
-        function handleRegistration(e) {
-            e.preventDefault();
-            const users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || "[]");
-            const randomId = "aud_" + Math.floor(1000 + Math.random() * 9000);
-            const defaultPass = String(Math.floor(100000 + Math.random() * 900000));
-
-            const newUser = {
-                id: randomId,
-                pass: defaultPass,
-                name: document.getElementById("regName").value.trim(),
-                office: document.getElementById("regOffice").value.trim(),
-                designation: document.getElementById("regDesignation").value.trim(),
-                district: document.getElementById("regDistrict").value.trim(),
-                upazila: document.getElementById("regUpazila").value.trim(),
-                phone: document.getElementById("regPhone").value.trim(),
-                email: document.getElementById("regEmail").value.trim(),
-                isMaster: false
-            };
-
-            users.push(newUser);
-            localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-
-            const mailSubject = encodeURIComponent("চৈতন্য অডিটর পোর্টাল - আপনার আইডি ও পাসওয়ার্ড");
-            const mailBody = encodeURIComponent(`সম্মানিত ${newUser.name},\n\nচৈতন্য পোর্টালে আপনার একাউন্ট সফলভাবে তৈরি হয়েছে।\nইউজার আইডি: ${newUser.id}\nপাসওয়ার্ড: ${newUser.pass}\nকর্মস্থল: ${newUser.office}\n\nধন্যবাদ।`);
-            window.open(`mailto:${newUser.email}?subject=${mailSubject}&body=${mailBody}`, '_blank');
-
-            document.getElementById("newUserIdDisp").innerText = newUser.id;
-            document.getElementById("newUserPassDisp").innerText = newUser.pass;
-            document.getElementById("regSuccessModal").classList.remove("hidden");
-            document.getElementById("regForm").reset();
-        }
-
-        function closeRegSuccessModal() {
-            document.getElementById("regSuccessModal").classList.add("hidden");
-            toggleAuthTab('login');
-        }
-
-        function showDashboard() {
-            document.getElementById("authScreen").classList.add("hidden");
-            document.getElementById("dashboardScreen").classList.remove("hidden");
-
-            document.getElementById("displayUserName").innerText = currentUser.name;
-            document.getElementById("displayOfficeDesignation").innerText = `${currentUser.designation} | ${currentUser.office}`;
-            
-            const badge = document.getElementById("roleBadge");
-            if (currentUser.id === MASTER_ADMIN_ID) {
-                badge.innerText = "মাদার এডমিন";
-                badge.className = "text-[10px] bg-amber-50 text-amber-700 border border-amber-300 px-1.5 py-0.2 rounded font-semibold";
-            } else {
-                badge.innerText = "অডিটর";
-                badge.className = "text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded font-semibold";
-            }
-
-            renderLists();
-            checkPendingReminder();
-        }
-
-        function showAuth() {
-            document.getElementById("authScreen").classList.remove("hidden");
-            document.getElementById("dashboardScreen").classList.add("hidden");
-        }
-
-        function logout() {
-            localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
-            currentUser = null;
-            showAuth();
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll(".tab-pane").forEach(p => p.classList.add("hidden"));
-            document.getElementById(tabId).classList.remove("hidden");
-
-            const navMap = {
-                'paneEntry': { btn: 'btnNavEntry', activeColor: 'text-blue-600' },
-                'panePending': { btn: 'btnNavPending', activeColor: 'text-amber-600' },
-                'paneDone': { btn: 'btnNavDone', activeColor: 'text-emerald-600' },
-                'paneOrders': { btn: 'btnNavOrders', activeColor: 'text-indigo-600' }
-            };
-
-            Object.values(navMap).forEach(item => {
-                const el = document.getElementById(item.btn);
-                el.className = "py-1 text-slate-400 hover:text-slate-700 flex flex-col items-center";
-                const label = el.querySelector("span");
-                if (label) label.className = "text-[10px] mt-0.5 font-medium";
-            });
-
-            const current = navMap[tabId];
-            if (current) {
-                const activeBtn = document.getElementById(current.btn);
-                activeBtn.className = `py-1 ${current.activeColor} flex flex-col items-center`;
-                const label = activeBtn.querySelector("span");
-                if (label) label.className = "text-[10px] mt-0.5 font-bold";
-            }
-
-            if (tabId === 'paneOrders') renderOrdersArchive();
-        }
-
-        function saveWorkEntry(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById("entryDocFile");
-            if (!fileInput.files.length) {
-                alert("অফিস আদেশ বা ফরওয়ার্ডিং আপলোড করা বাধ্যতামূলক!");
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                const newWork = {
-                    id: "wrk_" + Date.now(),
-                    userId: currentUser.id,
-                    userName: currentUser.name,
-                    category: document.getElementById("entryCategory").value,
-                    office: document.getElementById("entryOffice").value,
-                    personName: document.getElementById("entryPersonName").value.trim() || "প্রযোজ্য নয়",
-                    amount: parseFloat(document.getElementById("entryAmount").value) || 0,
-                    fileName: file.name,
-                    fileData: event.target.result,
-                    status: "pending",
-                    startDate: new Date().toISOString().split('T')[0],
-                    endDate: null
-                };
-
-                worksData.unshift(newWork);
-                localStorage.setItem(STORAGE_KEY_WORKS, JSON.stringify(worksData));
-                alert("কার্যবন্টন ও আদেশ সফলভাবে সংরক্ষিত হয়েছে!");
-                document.getElementById("workEntryForm").reset();
-                renderLists();
-                switchTab('panePending');
-            };
-
-            reader.readAsDataURL(file);
-        }
-
-        function renderLists() {
-            const isMaster = (currentUser && currentUser.id === MASTER_ADMIN_ID);
-            let accessibleWorks = worksData.filter(w => isMaster ? true : w.userId === currentUser.id);
-
-            const searchPending = (document.getElementById("searchPending")?.value || "").toLowerCase();
-            const catFilter = document.getElementById("filterCategoryPending")?.value || "";
-
-            const pendingItems = accessibleWorks.filter(w => {
-                return w.status === 'pending' &&
-                    (!catFilter || w.category === catFilter) &&
-                    (w.office.toLowerCase().includes(searchPending) || w.personName.toLowerCase().includes(searchPending));
-            });
-
-            document.getElementById("pendingCountBadge").innerText = pendingItems.length.toString().replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]);
-            
-            const pendingContainer = document.getElementById("pendingListContainer");
-            pendingContainer.innerHTML = pendingItems.length === 0 
-                ? `<div class="text-center py-8 text-xs text-slate-400">কোনো পেন্ডিং কাজ নেই।</div>`
-                : pendingItems.map(item => `
-                    <div class="bg-white border border-amber-200 rounded-xl p-3 shadow-sm hover:shadow transition-all flex flex-col gap-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">${item.category}</span>
-                            <span class="text-[11px] text-rose-600 font-medium">শুরু: ${item.startDate}</span>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-800">${item.office}</h4>
-                            <p class="text-[11px] text-slate-600">কর্মচারী: <span class="text-slate-900 font-semibold">${item.personName}</span> | বিল: <span class="text-blue-700 font-bold">৳ ${item.amount.toLocaleString('en-IN')}</span></p>
-                        </div>
-                        <div class="flex items-center justify-between border-t border-slate-100 pt-2 mt-1">
-                            <button onclick="previewFile('${item.id}')" class="text-[11px] text-blue-600 hover:text-blue-800 font-medium hover:underline flex items-center gap-1">
-                                <i class="fa-solid fa-paperclip"></i> আদেশ দেখুন
-                            </button>
-                            <div class="flex gap-2">
-                                <button onclick="markAsDone('${item.id}')" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg font-medium shadow-sm">
-                                    <i class="fa-solid fa-check"></i> Done
-                                </button>
-                                <button onclick="printSingleWork('${item.id}')" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-lg font-medium border border-slate-200">
-                                    <i class="fa-solid fa-print"></i> প্রিন্ট
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-            const doneItems = accessibleWorks.filter(w => w.status === 'done');
-            const doneContainer = document.getElementById("doneListContainer");
-            doneContainer.innerHTML = doneItems.length === 0 
-                ? `<div class="text-center py-8 text-xs text-slate-400">কোনো সম্পন্ন কাজের রেকর্ড নেই।</div>`
-                : doneItems.map(item => `
-                    <div class="bg-white border border-emerald-200 rounded-xl p-3 shadow-sm hover:shadow transition-all flex flex-col gap-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300">${item.category}</span>
-                            <span class="text-[11px] text-slate-500">সমাপ্তি: ${item.endDate}</span>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-800">${item.office}</h4>
-                            <p class="text-[11px] text-slate-600">কর্মচারী: ${item.personName} | বিল: ৳ ${item.amount.toLocaleString('en-IN')}</p>
-                        </div>
-                        <div class="flex items-center justify-between border-t border-slate-100 pt-2 mt-1">
-                            <button onclick="previewFile('${item.id}')" class="text-[11px] text-blue-600 hover:text-blue-800 font-medium hover:underline flex items-center gap-1">
-                                <i class="fa-solid fa-paperclip"></i> আদেশ
-                            </button>
-                            <button onclick="printSingleWork('${item.id}')" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-lg font-medium border border-slate-200">
-                                <i class="fa-solid fa-print"></i> প্রিন্ট
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-        }
-
-        function markAsDone(id) {
-            const item = worksData.find(w => w.id === id);
-            if (item) {
-                item.status = "done";
-                item.endDate = new Date().toISOString().split('T')[0];
-                localStorage.setItem(STORAGE_KEY_WORKS, JSON.stringify(worksData));
-                renderLists();
-            }
-        }
-
-        function previewFile(id) {
-            const item = worksData.find(w => w.id === id);
-            if (item && item.fileData) {
-                const win = window.open();
-                if (item.fileData.includes("data:image")) {
-                    win.document.write(`<img src="${item.fileData}" style="max-width:100%; height:auto;">`);
-                } else {
-                    win.location.href = item.fileData;
-                }
-            } else {
-                alert("ফাইল প্রিভিউ পাওয়া যায়নি।");
-            }
-        }
-
-        function checkPendingReminder() {
-            const isMaster = (currentUser && currentUser.id === MASTER_ADMIN_ID);
-            const pendingCount = worksData.filter(w => (isMaster ? true : w.userId === currentUser.id) && w.status === 'pending').length;
-            if (pendingCount > 0) {
-                document.getElementById("reminderText").innerText = `আপনার ওয়ার্কস্পেসে বর্তমানে ${pendingCount.toString().replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d])} টি কাজ পেন্ডিং রয়েছে।`;
-                document.getElementById("pendingReminderModal").classList.remove("hidden");
-            }
-        }
-
-        function toggleSecretCollectionModal() {
-            const modal = document.getElementById("secretCollectionModal");
-            if (modal.classList.contains("hidden")) {
-                renderSecretCollections();
-                modal.classList.remove("hidden");
-            } else {
-                modal.classList.add("hidden");
-            }
-        }
-
-        function renderSecretCollections() {
-            const isMaster = (currentUser && currentUser.id === MASTER_ADMIN_ID);
-            const items = worksData.filter(w => (isMaster ? true : w.userId === currentUser.id) && w.category === 'আনুষঙ্গিক বিল' && w.amount > 0);
-            
-            const container = document.getElementById("collectionItemsContainer");
-            if (items.length === 0) {
-                container.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">কোনো আনুষঙ্গিক বিল পাওয়া যায়নি।</div>`;
-                return;
-            }
-
-            container.innerHTML = items.map(w => {
-                const col3 = w.amount * 0.03;
-                return `
-                    <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200 text-xs space-y-1.5 shadow-sm">
-                        <div class="font-bold text-slate-800">${w.office} (মোট বিল: ৳ ${w.amount.toLocaleString('en-IN')})</div>
-                        <div class="grid grid-cols-3 gap-1 text-[11px] text-slate-600">
-                            <div>৩% হার: ৳ ${col3.toFixed(0)}</div>
-                            <div>৪% হার: ৳ ${(w.amount * 0.04).toFixed(0)}</div>
-                            <div>৫% হার: ৳ ${(w.amount * 0.05).toFixed(0)}</div>
-                        </div>
-                        <div class="border-t border-amber-200/80 pt-1 text-[10px] text-amber-900 font-semibold flex justify-between">
-                            <span>অংশ ১ (৫০%): ৳ ${(col3 * 0.5).toFixed(0)}</span>
-                            <span>অংশ ২ (৩০%): ৳ ${(col3 * 0.3).toFixed(0)}</span>
-                            <span>অংশ ৩ (২০%): ৳ ${(col3 * 0.2).toFixed(0)}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function printFilteredList(type) {
-            const isMaster = (currentUser && currentUser.id === MASTER_ADMIN_ID);
-            const items = worksData.filter(w => (isMaster ? true : w.userId === currentUser.id) && w.status === type);
-            const printArea = document.getElementById("printArea");
-
-            printArea.innerHTML = `
-                <div style="font-family: Arial, sans-serif; padding: 20px;">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h2 style="margin:0; font-size:18px;">চৈতন্য - অডিটর ওয়ার্কস্পেস পোর্টাল</h2>
-                        <h4 style="margin:5px 0; font-size:14px;">${type === 'pending' ? 'পেন্ডিং কাজের তালিকা' : 'সম্পন্ন কাজের তালিকা (Done Folder)'}</h4>
-                        <p style="font-size:11px; color:#555;">রিপোর্ট প্রস্তুতকারী: ${currentUser.name} (${currentUser.designation}) | তারিখ: ${new Date().toLocaleDateString('bn-BD')}</p>
-                    </div>
-                    <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse; font-size:12px;">
-                        <thead>
-                            <tr style="background:#f2f2f2;">
-                                <th>ক্রমিক</th>
-                                <th>ক্যাটাগরি</th>
-                                <th>দপ্তরের নাম</th>
-                                <th>কর্মচারী</th>
-                                <th>বিলের পরিমাণ</th>
-                                <th>তারিখ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${items.map((w, idx) => `
-                                <tr>
-                                    <td align="center">${idx + 1}</td>
-                                    <td>${w.category}</td>
-                                    <td>${w.office}</td>
-                                    <td>${w.personName}</td>
-                                    <td align="right">৳ ${w.amount.toLocaleString('en-IN')}</td>
-                                    <td align="center">${w.startDate}${w.endDate ? `থেকে ${w.endDate}` : ''}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
+    function renderHistoryTable() {
+        const historyBody = document.getElementById('historyTableBody');
+        historyBody.innerHTML = '';
+        entries.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.date}</td>
+                <td>${item.officeName}</td>
+                <td>${toBengaliNum(item.collection)} টাকা</td>
+                <td>${toBengaliNum(item.superShare)} টাকা</td>
+                <td>${toBengaliNum(item.dafoShare)} টাকা</td>
             `;
+            historyBody.appendChild(row);
+        });
+    }
 
-            window.print();
+    function preparePrintData() {
+        const superBody = document.getElementById('printSuperBody');
+        const dafoBody = document.getElementById('printDafoBody');
+        superBody.innerHTML = '';
+        dafoBody.innerHTML = '';
+
+        entries.forEach(item => {
+            superBody.innerHTML += `<tr><td>${item.officeName}</td><td>${toBengaliNum(item.collection)} টাকা</td><td>${toBengaliNum(item.superShare)} টাকা</td></tr>`;
+            dafoBody.innerHTML += `<tr><td>${item.officeName}</td><td>${toBengaliNum(item.collection)} টাকা</td><td>${toBengaliNum(item.dafoShare)} টাকা</td></tr>`;
+        });
+
+        const today = new Date();
+        const dateStr = toBengaliNum(today.getDate()) + '/' + toBengaliNum(today.getMonth() + 1) + '/' + toBengaliNum(today.getFullYear());
+        document.getElementById('printDate1').innerText = "তারিখ: " + dateStr;
+        document.getElementById('printDate2').innerText = "তারিখ: " + dateStr;
+    }
+
+    function editEntry(index) {
+        const item = entries[index];
+        document.getElementById('popupOffice').value = item.officeName;
+        document.getElementById('popupBill').value = item.totalBill;
+        document.getElementById('popupCollection').value = item.collection;
+        document.getElementById('editIndex').value = index;
+        document.getElementById('modalTitle').innerText = "তথ্য এডিট করুন";
+        openStep(1);
+    }
+
+    function deleteEntry(index) {
+        if (confirm('মুছে ফেলতে চান?')) {
+            entries.splice(index, 1);
+            localStorage.setItem('hadiya_data', JSON.stringify(entries));
+            renderTable();
         }
+    }
 
-        function printSingleWork(id) {
-            const item = worksData.find(w => w.id === id);
-            if (!item) return;
-
-            const printArea = document.getElementById("printArea");
-            printArea.innerHTML = `
-                <div style="font-family: Arial, sans-serif; padding: 30px; border: 1px solid #ccc;">
-                    <h3 style="text-align:center; margin-bottom: 20px;">অডিট ও কার্যবন্টন স্লিপ</h3>
-                    <p><strong>আইডি:</strong> ${item.id}</p>
-                    <p><strong>ক্যাটাগরি:</strong> ${item.category}</p>
-                    <p><strong>দপ্তরের নাম:</strong> ${item.office}</p>
-                    <p><strong>সংশ্লিষ্ট কর্মচারী:</strong> ${item.personName}</p>
-                    <p><strong>বিলের পরিমাণ:</strong> ৳ ${item.amount.toLocaleString('en-IN')}</p>
-                    <p><strong>শুরুর তারিখ:</strong> ${item.startDate}</p>
-                    <p><strong>স্ট্যাটাস:</strong> ${item.status === 'done' ? 'সম্পন্ন' : 'পেন্ডিং'}</p>
-                    <br><br>
-                    <div style="display:flex; justify-content:space-between; margin-top:40px;">
-                        <span>নিরীক্ষাকারী স্বাক্ষর</span>
-                        <span>কর্তৃপক্ষের স্বাক্ষর</span>
-                    </div>
-                </div>
-            `;
-            window.print();
+    function clearAllData() {
+        if (confirm('সকল ডাটা মুছে ফেলতে চান?')) {
+            entries = [];
+            localStorage.removeItem('hadiya_data');
+            renderTable();
         }
+    }
 
-        function printSecretCollection() {
-            const isMaster = (currentUser && currentUser.id === MASTER_ADMIN_ID);
-            const items = worksData.filter(w => (isMaster ? true : w.userId === currentUser.id) && w.category === 'আনুষঙ্গিক বিল' && w.amount > 0);
-            
-            const printArea = document.getElementById("printArea");
-            printArea.innerHTML = `
-                <div style="font-family: Arial, sans-serif; padding: 20px;">
-                    <h3 style="text-align: center; margin-bottom: 5px;">অফিস কালেকশন বিবরণী (গোপনীয়)</h3>
-                    <p style="text-align: center; font-size:12px; margin-bottom:20px;">তারিখ: ${new Date().toLocaleDateString('bn-BD')}</p>
-                    <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse; font-size:11px;">
-                        <tr style="background:#eee;">
-                            <th>দপ্তর</th>
-                            <th>মোট বিল</th>
-                            <th>৩% মোট</th>
-                            <th>৫০% অংশ</th>
-                            <th>৩০% অংশ</th>
-                            <th>২০% অংশ</th>
-                        </tr>
-                        ${items.map(w => {
-                            const c = w.amount * 0.03;
-                            return `
-                                <tr>
-                                    <td>${w.office}</td>
-                                    <td align="right">৳ ${w.amount.toLocaleString('en-IN')}</td>
-                                    <td align="right">৳ ${c.toFixed(0)}</td>
-                                    <td align="right">৳ ${(c*0.5).toFixed(0)}</td>
-                                    <td align="right">৳ ${(c*0.3).toFixed(0)}</td>
-                                    <td align="right">৳ ${(c*0.2).toFixed(0)}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </table>
-                </div>
-            `;
-            window.print();
+    function copyTableForMSWord() {
+        const table = document.getElementById('resultTable');
+        const cloneTable = table.cloneNode(true);
+        cloneTable.querySelectorAll('.no-print').forEach(el => el.remove());
+
+        let range = document.createRange();
+        range.selectNode(cloneTable);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        
+        try {
+            document.execCommand('copy');
+            alert('কপি হয়েছে! MS Word এ পেস্ট করুন।');
+        } catch (err) {
+            alert('কপি করতে সমস্যা হয়েছে।');
         }
+        window.getSelection().removeAllRanges();
+    }
 
-        function renderOrdersArchive() {
-            const search = (document.getElementById("searchOrdersInput")?.value || "").toLowerCase();
-            const isMaster = (currentUser && currentUser.id === MASTER_ADMIN_ID);
-            const items = worksData.filter(w => (isMaster ? true : w.userId === currentUser.id) && (w.office.toLowerCase().includes(search) || w.startDate.includes(search)));
+    window.onload = function() {
+        cleanOldData();
+        renderTable();
+    };
+</script>
 
-            const container = document.getElementById("ordersArchiveList");
-            container.innerHTML = items.length === 0 
-                ? `<div class="col-span-2 text-center py-6 text-xs text-slate-400">কোনো আদেশ বা ফাইল রেকর্ড পাওয়া যায়নি।</div>`
-                : items.map(w => `
-                    <div class="bg-white border border-indigo-200 rounded-xl p-3 shadow-sm flex items-center justify-between">
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-800">${w.office}</h4>
-                            <p class="text-[10px] text-slate-500">তারিখ: ${w.startDate} | ফাইল: ${w.fileName}</p>
-                        </div>
-                        <button onclick="previewFile('${w.id}')" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-medium">
-                            <i class="fa-solid fa-eye"></i> দেখুন
-                        </button>
-                    </div>
-                `).join('');
-        }
-
-        function updateProfilePic(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    document.getElementById("userAvatar").src = evt.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        window.onload = initApp;
-    </script>
 </body>
 </html>
